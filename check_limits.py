@@ -1,18 +1,19 @@
-
-def battery_is_ok(temperature, soc, charge_rate):
-  if temperature < 0 or temperature > 45:
-    print('Temperature is out of range!')
-    return False
-  elif soc < 20 or soc > 80:
-    print('State of Charge is out of range!')
-    return False
-  elif charge_rate > 0.8:
-    print('Charge rate is out of range!')
-    return False
-
-  return True
-
+from bms import validate_bms_param_name
+from bms import validate_bms_param_value
+from bms import validate_overall_bms_health
 
 if __name__ == '__main__':
-  assert(battery_is_ok(25, 70, 0.7) is True)
-  assert(battery_is_ok(50, 85, 0) is False)
+    
+    assert (validate_bms_param_name({'temperature': 40, 'soc': 40, 'charging_rate': 0.8, 'current': 5}) == 'ParamNameUnknown')
+    assert (validate_bms_param_name({'temperature': 39, 'soc': 53, 'charging_rate': 0.8}) != 'ParamNameUnknown')
+    assert (validate_bms_param_name({'temperature': 44, 'soc': 70, 'charging_rate': 0.75}) == 'OK')
+
+    assert (validate_bms_param_value({'temperature': float('nan'), 'soc': 40, 'charging_rate': 0.8}) == 'NullValue')
+    assert (validate_bms_param_value({'temperature': 40, 'soc': float('nan'), 'charging_rate': 0.8}) == 'NullValue')
+    assert (validate_bms_param_value({'temperature': 40, 'soc': 40 , 'charging_rate': float('nan')}) == 'NullValue')
+    assert (validate_bms_param_value({'temperature': 40, 'soc': 40, 'charging_rate': 0.6}) == 'OK')
+
+    assert (len(validate_overall_bms_health({'temperature': 40, 'soc': 40, 'charging_rate': 0.6})) == 0)
+    assert (len(validate_overall_bms_health({'temperature': 100, 'soc': 89, 'charging_rate': 0.8})) > 0)
+    assert (len(validate_overall_bms_health({'temperature': -1, 'soc': 40, 'charging_rate': 0.8})) > 0)
+    assert (len(validate_overall_bms_health({'temperature': -1, 'soc': 85, 'charging_rate': 1})) > 0)
